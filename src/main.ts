@@ -19,7 +19,9 @@ export async function run(): Promise<void> {
 
     for (const [owner, scope] of friends) {
       const repositories = scope === 'ALL' ? undefined : scope.repositories
-      const label = repositories ? `${owner} (${repositories.join(', ')})` : `${owner} (all authorized repos)`
+      // Square-bracket the owner so stray characters (e.g. a leading `- ` from
+      // YAML-list muscle memory) are visible at a glance in the run log.
+      const label = repositories ? `[${owner}] (${repositories.join(', ')})` : `[${owner}] (all authorized repos)`
       info(`Authorizing ${label}`)
 
       // One installation token per owner, scoped to the owner's listed repos

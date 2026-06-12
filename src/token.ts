@@ -39,13 +39,26 @@ async function findInstallationId(jwt: string, owner: string): Promise<number> {
   try {
     const {data} = await request('GET /orgs/{org}/installation', {org: owner, headers})
     return data.id
-  } catch (err) {
-    if (status(err) === 404) {
-      const {data} = await request('GET /users/{username}/installation', {username: owner, headers})
-      return data.id
+  } catch (orgErr) {
+    if (status(orgErr) === 404) {
+      try {
+        const {data} = await request('GET /users/{username}/installation', {username: owner, headers})
+        return data.id
+      } catch (userErr) {
+        throw notFound(owner, userErr)
+      }
     }
-    throw new Error(`Could not find a Repo Reacher installation for "${owner}": ${message(err)}`)
+    throw notFound(owner, orgErr)
   }
+}
+
+// Surface a friendly, actionable message with the raw octokit error beneath it
+// so the cause (e.g. a 404 from a malformed owner) is never hidden.
+function notFound(owner: string, err: unknown): Error {
+  return new Error(
+    `Could not find a Repo Reacher installation for "${owner}". ` +
+      `Check the owner is spelled correctly and the App is installed there.\n${message(err)}`,
+  )
 }
 
 function status(err: unknown): number | undefined {
