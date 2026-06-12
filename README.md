@@ -17,18 +17,73 @@ credential. This action wraps a GitHub App (the same mechanism as
 and applies the resulting token(s) to git for you, once, for every owner you
 list.
 
-## Prerequisites (one-time, per org)
+## Setup (one-time)
 
-1. **Register one GitHub App** (org-owned), Repository permission **Contents:
-   Read-only**, "Where can this app be installed?" → **Any account**. Generate a
-   private key (`.pem`) and note the **App ID**.
-2. **Install the App** on each owner whose repos you need, scoped to **selected
-   repositories** (recommended) — this is the real blast-radius cap.
-3. Store the credentials so workflows can map them. Org-level is cleanest:
-   - **Variable** `REPO_REACHER_APP_ID` → the App ID (not a secret)
-   - **Secret** `REPO_REACHER_KEY` → the `.pem` contents (raw or base64)
+However you set it up, the action only ever needs three things to exist:
 
-The App ID and key are shared across every owner — one App, many installations.
+1. an **App ID** (a number, not secret),
+2. the App's **private key** (one `.pem`, the only secret), and
+3. an **installation** of that App on each owner in your `friends` list.
+
+One App → one ID → one key → **many per-org installations**. Pick the path that
+matches your GitHub plan.
+
+### Golden Path — enterprise-owned App (GitHub Enterprise Cloud)
+
+Best when every owner you'll reach lives inside one GitHub Enterprise. The App
+is owned by the **enterprise itself**, so it's centrally originated and
+auto-scoped to the enterprise's organizations (it physically **cannot** be
+installed on an external org — a tighter blast radius for free).
+
+1. **Register it at the enterprise:** Enterprise account → **Settings → GitHub
+   Apps** → **New GitHub App**. (Enterprise-owned apps skip the "Developer
+   settings" step that org-owned apps use.)
+2. Permissions → Repository → **Contents: Read-only**. Webhook → **uncheck
+   Active**.
+3. **Generate a private key** (`.pem`) and note the **App ID**. Both originate
+   and live here, at the enterprise.
+4. **Install it on each org** whose repos you need — manually, via the App's
+   install link → choose **Only select repositories** (the real blast-radius
+   cap). Repeat per org; no installer/automation required.
+5. Store the credentials (see [below](#store-the-credentials)).
+
+> **Constraint:** an enterprise-owned App can only be installed on that
+> enterprise and its member organizations. If a `friends` owner is an org
+> _outside_ this enterprise, use the One-Org path below for it (or a second App).
+
+### One-Org-To-Rule-Them-All — org-owned App (no Enterprise)
+
+Best when you don't have GitHub Enterprise, or need to reach orgs that aren't all
+in one enterprise. One designated **shared-services org** owns the App; it's made
+publicly installable so it can be added to any other org.
+
+1. **Register it under the shared-services org:** that org → **Settings →
+   Developer settings → GitHub Apps** → **New GitHub App**.
+2. Permissions → Repository → **Contents: Read-only**. Webhook → **uncheck
+   Active**.
+3. **"Where can this app be installed?"** → **Any account** (this is what lets it
+   install on _other_ orgs).
+4. **Generate a private key** (`.pem`) and note the **App ID**.
+5. **Install it on each owner** whose repos you need, scoped to **selected
+   repositories** (recommended).
+6. Store the credentials (see [below](#store-the-credentials)).
+
+> The App is owned by one org but installable anywhere, so its blast radius is
+> wider than the enterprise-owned App. Prefer the Golden Path if you have
+> Enterprise.
+
+### Store the credentials
+
+In **each org that runs workflows** using this action (the consumer side), make
+the App ID and key available to those repos. Org-level is cleanest:
+
+- **Variable** `REPO_REACHER_APP_ID` → the App ID (not a secret)
+- **Secret** `REPO_REACHER_KEY` → the `.pem` contents (raw or base64), scoped to
+  the repos that need it
+
+The same App ID and key are shared across every owner and every consuming org —
+one App, many installations. The credential lives wherever the _workflow runs_,
+not on the `friends` orgs being reached.
 
 ## Usage
 
