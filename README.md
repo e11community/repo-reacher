@@ -123,6 +123,11 @@ Newline-delimited owners. Each line:
 
 Notes:
 
+- Always pass `friends` as a `|` block list — one owner per line — even for a
+  single owner. It reads consistently and grows without re-quoting.
+- A leading `- ` bullet is **tolerated and stripped**, so `- org2` and `org2`
+  are equivalent. Write the list however the muscle memory of `run: |` blocks
+  takes you — with or without bullets.
 - **One token and one git rewrite per owner**, regardless of how many repo lines
   it has. Lines under the same owner are merged.
 - A bare `owner` does **not** mean "every repo in the org" — it means "the full
@@ -151,7 +156,8 @@ read-only, so other steps in the same job can't accidentally push.
 
 ```yaml
 with:
-  friends: org2
+  friends: |
+    org2
   permissions: contents:read # default — explicit here for clarity
 ```
 
@@ -160,7 +166,8 @@ escalate beyond it):
 
 ```yaml
 with:
-  friends: org2
+  friends: |
+    org2
   permissions: |
     contents: read
     pull_requests: read
@@ -170,7 +177,8 @@ Use the App installation's full grant (no narrowing):
 
 ```yaml
 with:
-  friends: org2
+  friends: |
+    org2
   permissions: inherit
 ```
 

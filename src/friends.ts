@@ -9,7 +9,10 @@ export function parseFriends(raw: string): Map<string, Scope> {
 
   for (const line of raw
     .split('\n')
-    .map(l => l.trim())
+    // Tolerate YAML-list muscle memory: a leading `- ` bullet is stripped so
+    // `- owner` and `owner` are equivalent. Without this, the bullet becomes
+    // part of the owner name and the installation lookup 404s.
+    .map(l => l.trim().replace(/^-\s+/, ''))
     .filter(Boolean)) {
     const slash = line.indexOf('/')
 
