@@ -103,7 +103,7 @@ jobs:
             org3/yo
             org3/papa
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: terraform -chdir=environments/dev/main init
 ```
 
