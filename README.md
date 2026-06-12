@@ -80,11 +80,53 @@ Notes:
 
 ## Inputs
 
-| Input             | Required | Default              | Description                                                            |
-| ----------------- | -------- | -------------------- | ---------------------------------------------------------------------- |
-| `friends`         | yes      | —                    | Newline-delimited `owner` / `owner/repo` lines (see above).            |
-| `app_id_env`      | no       | `REPO_READER_APP_ID` | Name of the env var holding the App ID. Override only on name clashes. |
-| `private_key_env` | no       | `REPO_READER_KEY`    | Name of the env var holding the App private key (PEM, raw or base64).  |
+| Input             | Required | Default              | Description                                                                          |
+| ----------------- | -------- | -------------------- | ------------------------------------------------------------------------------------ |
+| `friends`         | yes      | —                    | Newline-delimited `owner` / `owner/repo` lines (see above).                          |
+| `app_id_env`      | no       | `REPO_READER_APP_ID` | Name of the env var holding the App ID. Override only on name clashes.               |
+| `private_key_env` | no       | `REPO_READER_KEY`    | Name of the env var holding the App private key (PEM, raw or base64).                |
+| `permissions`     | no       | `contents:read`      | Narrow the minted token to a subset of the App's grant (see below). `inherit` = all. |
+
+## Limiting token permissions
+
+The minted token defaults to **`contents:read`** — the least privilege needed
+to clone. This is a deliberate safety floor: even if an org admin grants the App
+broader access (say `contents:write`), a token produced by this action stays
+read-only, so other steps in the same job can't accidentally push.
+
+```yaml
+with:
+  friends: org2
+  permissions: contents:read # default — explicit here for clarity
+```
+
+Request more (still bounded by what the App was granted — you **cannot**
+escalate beyond it):
+
+```yaml
+with:
+  friends: org2
+  permissions: |
+    contents: read
+    pull_requests: read
+```
+
+Use the App installation's full grant (no narrowing):
+
+```yaml
+with:
+  friends: org2
+  permissions: inherit
+```
+
+Rules:
+
+- Format is comma- or newline-delimited `name:level`; level is `read`, `write`,
+  or `admin`.
+- Narrowing only ever **reduces** scope. If you request a permission the App was
+  never granted, GitHub rejects the token mint — the step fails rather than
+  silently downgrading.
+- The same `permissions` apply to every owner in `friends`.
 
 ## How it works
 

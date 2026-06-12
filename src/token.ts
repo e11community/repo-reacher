@@ -7,13 +7,15 @@ export interface MintArgs {
   privateKey: string
   owner: string
   repositories?: string[]
+  permissions?: Record<string, string>
 }
 
 // Replicates the core of actions/create-github-app-token: sign a JWT as the
 // App (the private key never leaves the runner), discover the installation for
 // `owner`, then exchange for a short-lived installation token scoped to the
-// listed repositories (or the full grant when `repositories` is undefined).
-export async function mintToken({appId, privateKey, owner, repositories}: MintArgs): Promise<string> {
+// listed repositories (or the full grant when `repositories` is undefined) and
+// narrowed to `permissions` (a subset of the App's grant; never an escalation).
+export async function mintToken({appId, privateKey, owner, repositories, permissions}: MintArgs): Promise<string> {
   const auth = createAppAuth({appId, privateKey, request})
 
   const app = await auth({type: 'app'})
@@ -23,6 +25,7 @@ export async function mintToken({appId, privateKey, owner, repositories}: MintAr
     type: 'installation',
     installationId,
     repositoryNames: repositories,
+    permissions,
   })
 
   setSecret(installation.token)

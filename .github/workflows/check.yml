@@ -1,0 +1,41 @@
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Format check
+        run: npm run format-check
+
+      - name: Build bundle
+        run: npm run build
+
+      # The runner executes the committed dist/action.js, not src/. If the
+      # bundle was not rebuilt after a src/ change, the action runs stale code.
+      # Fail the PR when dist/ differs from a fresh build.
+      - name: Verify dist/ is in sync with src/
+        run: |
+          if ! git diff --exit-code -- dist/; then
+            echo "::error::dist/ is out of date — run 'npm run build' and commit the result."
+            exit 1
+          fi

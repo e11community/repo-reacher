@@ -32,6 +32,16 @@ inputs:
       conventional name collides.
     required: false
     default: 'REPO_READER_KEY'
+  permissions:
+    description: >-
+      Comma- or newline-delimited `name:level` pairs that narrow the minted
+      token to a SUBSET of what the App was granted (you cannot escalate beyond
+      the App's permissions). Level is `read`, `write`, or `admin`. Defaults to
+      `contents:read` — the least privilege needed to clone — so a token from
+      this action stays read-only even if an org admin later grants the App
+      write. Set to `inherit` to use the App installation's full grant instead.
+    required: false
+    default: 'contents:read'
 runs:
   using: node24
   main: dist/action.js
