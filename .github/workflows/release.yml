@@ -1,0 +1,27 @@
+name: release
+
+# On every semver tag push (vMAJOR.MINOR.PATCH), move the major tag (vMAJOR) to
+# the same commit so consumers pinned to `@v1` get the latest v1.x without the
+# author force-pushing by hand. The major tag (e.g. `v1`) does not match
+# `v*.*.*`, so updating it does not retrigger this workflow.
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  major-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Move major tag to ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          MAJOR="${GITHUB_REF_NAME%%.*}"   # v1.2.3 -> v1
+          echo "Moving ${MAJOR} -> ${GITHUB_REF_NAME} ($(git rev-parse --short HEAD))"
+          git tag -f "$MAJOR"
+          git push -f origin "$MAJOR"
