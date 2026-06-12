@@ -205,6 +205,12 @@ For each owner:
 Tokens are masked in logs via `setSecret`. Runners are ephemeral, so the global
 git config evaporates with the job.
 
+## Local development (macOS)
+
+This action only authenticates git **in CI**. To run `terraform init` against
+the same `git::https://` private modules on your laptop, give local git its own
+GitHub credential — see [docs/MACOS.md](docs/MACOS.md).
+
 ## Development
 
 ```bash
