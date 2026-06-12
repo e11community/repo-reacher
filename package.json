@@ -1,5 +1,5 @@
 {
-  "name": "repo-reader",
+  "name": "repo-reacher",
   "version": "1.0.0",
   "description": "Authorize git to clone private repositories across one or more orgs using a GitHub App, then rewrite git config so later steps (terraform init, etc.) authenticate transparently.",
   "private": true,

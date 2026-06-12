@@ -9,16 +9,17 @@ export interface Credentials {
 
 // An action cannot read a workflow secret by name — GitHub never injects the
 // secret store into the runner. The workflow must map the App ID and key into
-// env (e.g. `REPO_READER_KEY: ${{ secrets.REPO_READER_KEY }}`); we read them
+// env (e.g. `REPO_REACHER_KEY: ${{ secrets.REPO_REACHER_KEY }}`); we read them
 // from there. The *_env inputs only override which env var name we look at.
 export function resolveCredentials(): Credentials {
-  const appIdEnv = getInput('app_id_env') || 'REPO_READER_APP_ID'
-  const keyEnv = getInput('private_key_env') || 'REPO_READER_KEY'
+  const appIdEnv = getInput('app_id_env') || 'REPO_REACHER_APP_ID'
+  const keyEnv = getInput('private_key_env') || 'REPO_REACHER_KEY'
 
   const appId = process.env[appIdEnv]
   if (!appId) {
     throw new Error(
-      `App ID not found in env var \`${appIdEnv}\`. Map it in your workflow, e.g.\n` + `    env:\n      ${appIdEnv}: \${{ vars.REPO_READER_APP_ID }}`,
+      `App ID not found in env var \`${appIdEnv}\`. Map it in your workflow, e.g.\n` +
+        `    env:\n      ${appIdEnv}: \${{ vars.REPO_REACHER_APP_ID }}`,
     )
   }
 
@@ -26,7 +27,7 @@ export function resolveCredentials(): Credentials {
   if (!privateKey) {
     throw new Error(
       `Private key not found in env var \`${keyEnv}\`. Map it in your workflow, e.g.\n` +
-        `    env:\n      ${keyEnv}: \${{ secrets.REPO_READER_KEY }}`,
+        `    env:\n      ${keyEnv}: \${{ secrets.REPO_REACHER_KEY }}`,
     )
   }
   setSecret(privateKey)

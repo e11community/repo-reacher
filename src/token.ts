@@ -44,7 +44,7 @@ async function findInstallationId(jwt: string, owner: string): Promise<number> {
       const {data} = await request('GET /users/{username}/installation', {username: owner, headers})
       return data.id
     }
-    throw new Error(`Could not find a Repo Reader installation for "${owner}": ${message(err)}`)
+    throw new Error(`Could not find a Repo Reacher installation for "${owner}": ${message(err)}`)
   }
 }
 

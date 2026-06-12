@@ -1,4 +1,4 @@
-name: 'Repo Reader'
+name: 'Repo Reacher'
 description: >-
   Authorize git to clone private repositories across one or more orgs using a
   GitHub App, then rewrite global git config so subsequent steps (e.g.
@@ -20,18 +20,18 @@ inputs:
     description: >-
       Name of the environment variable holding the GitHub App ID. The App ID is
       not a secret; map it in your workflow, e.g.
-      `REPO_READER_APP_ID: ${{ vars.REPO_READER_APP_ID }}`. Override only if the
+      `REPO_REACHER_APP_ID: ${{ vars.REPO_REACHER_APP_ID }}`. Override only if the
       conventional name collides.
     required: false
-    default: 'REPO_READER_APP_ID'
+    default: 'REPO_REACHER_APP_ID'
   private_key_env:
     description: >-
       Name of the environment variable holding the GitHub App private key (PEM,
       raw or base64). Map it from a secret in your workflow, e.g.
-      `REPO_READER_KEY: ${{ secrets.REPO_READER_KEY }}`. Override only if the
+      `REPO_REACHER_KEY: ${{ secrets.REPO_REACHER_KEY }}`. Override only if the
       conventional name collides.
     required: false
-    default: 'REPO_READER_KEY'
+    default: 'REPO_REACHER_KEY'
   permissions:
     description: >-
       Comma- or newline-delimited `name:level` pairs that narrow the minted

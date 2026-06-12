@@ -1,4 +1,4 @@
-# repo-reader
+# repo-reacher
 
 A GitHub Action that authorizes `git` to clone **private repositories across one
 or more orgs** using a single GitHub App, then rewrites global git config so
@@ -25,8 +25,8 @@ list.
 2. **Install the App** on each owner whose repos you need, scoped to **selected
    repositories** (recommended) — this is the real blast-radius cap.
 3. Store the credentials so workflows can map them. Org-level is cleanest:
-   - **Variable** `REPO_READER_APP_ID` → the App ID (not a secret)
-   - **Secret** `REPO_READER_KEY` → the `.pem` contents (raw or base64)
+   - **Variable** `REPO_REACHER_APP_ID` → the App ID (not a secret)
+   - **Secret** `REPO_REACHER_KEY` → the `.pem` contents (raw or base64)
 
 The App ID and key are shared across every owner — one App, many installations.
 
@@ -38,10 +38,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # An action cannot read secrets/vars by name — map them here once.
-      REPO_READER_APP_ID: ${{ vars.REPO_READER_APP_ID }}
-      REPO_READER_KEY: ${{ secrets.REPO_READER_KEY }}
+      REPO_REACHER_APP_ID: ${{ vars.REPO_REACHER_APP_ID }}
+      REPO_REACHER_KEY: ${{ secrets.REPO_REACHER_KEY }}
     steps:
-      - uses: e11community/repo-reader@v1
+      - uses: e11community/repo-reacher@v1
         with:
           friends: |
             org2
@@ -52,7 +52,7 @@ jobs:
       - run: terraform -chdir=environments/dev/main init
 ```
 
-After the `repo-reader` step, git is configured so any clone of
+After the `repo-reacher` step, git is configured so any clone of
 `github.com/org2/*`, `github.com/org3/yo`, or `github.com/org3/papa` succeeds.
 
 ## The `friends` microformat
@@ -80,12 +80,12 @@ Notes:
 
 ## Inputs
 
-| Input             | Required | Default              | Description                                                                          |
-| ----------------- | -------- | -------------------- | ------------------------------------------------------------------------------------ |
-| `friends`         | yes      | —                    | Newline-delimited `owner` / `owner/repo` lines (see above).                          |
-| `app_id_env`      | no       | `REPO_READER_APP_ID` | Name of the env var holding the App ID. Override only on name clashes.               |
-| `private_key_env` | no       | `REPO_READER_KEY`    | Name of the env var holding the App private key (PEM, raw or base64).                |
-| `permissions`     | no       | `contents:read`      | Narrow the minted token to a subset of the App's grant (see below). `inherit` = all. |
+| Input             | Required | Default               | Description                                                                          |
+| ----------------- | -------- | --------------------- | ------------------------------------------------------------------------------------ |
+| `friends`         | yes      | —                     | Newline-delimited `owner` / `owner/repo` lines (see above).                          |
+| `app_id_env`      | no       | `REPO_REACHER_APP_ID` | Name of the env var holding the App ID. Override only on name clashes.               |
+| `private_key_env` | no       | `REPO_REACHER_KEY`    | Name of the env var holding the App private key (PEM, raw or base64).                |
+| `permissions`     | no       | `contents:read`       | Narrow the minted token to a subset of the App's grant (see below). `inherit` = all. |
 
 ## Limiting token permissions
 
