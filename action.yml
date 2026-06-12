@@ -1,0 +1,37 @@
+name: 'Repo Reader'
+description: >-
+  Authorize git to clone private repositories across one or more orgs using a
+  GitHub App, then rewrite global git config so subsequent steps (e.g.
+  terraform init) authenticate transparently.
+author: 'e11community'
+branding:
+  icon: 'git-branch'
+  color: 'purple'
+inputs:
+  friends:
+    description: >-
+      Newline-delimited owners to authorize. Each line is either a bare `owner`
+      (token scoped to every repo the App is installed on under that owner) or
+      `owner/repo` (token scoped to that repo; repeat lines to add more repos
+      under the same owner). A bare `owner` line supersedes any `owner/repo`
+      lines for the same owner.
+    required: true
+  app_id_env:
+    description: >-
+      Name of the environment variable holding the GitHub App ID. The App ID is
+      not a secret; map it in your workflow, e.g.
+      `REPO_READER_APP_ID: ${{ vars.REPO_READER_APP_ID }}`. Override only if the
+      conventional name collides.
+    required: false
+    default: 'REPO_READER_APP_ID'
+  private_key_env:
+    description: >-
+      Name of the environment variable holding the GitHub App private key (PEM,
+      raw or base64). Map it from a secret in your workflow, e.g.
+      `REPO_READER_KEY: ${{ secrets.REPO_READER_KEY }}`. Override only if the
+      conventional name collides.
+    required: false
+    default: 'REPO_READER_KEY'
+runs:
+  using: node24
+  main: dist/action.js

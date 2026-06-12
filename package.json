@@ -1,0 +1,26 @@
+{
+  "name": "repo-reader",
+  "version": "1.0.0",
+  "description": "Authorize git to clone private repositories across one or more orgs using a GitHub App, then rewrite git config so later steps (terraform init, etc.) authenticate transparently.",
+  "private": true,
+  "license": "MIT",
+  "author": "e11community",
+  "scripts": {
+    "build": "esbuild src/action.ts --bundle --platform=node --target=node24 --format=cjs --minify --outfile=dist/action.js",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format-check": "prettier --check ."
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/exec": "^1.1.1",
+    "@octokit/auth-app": "^7.2.1",
+    "@octokit/request": "^9.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "esbuild": "^0.28",
+    "prettier": "^3",
+    "typescript": "^5"
+  }
+}
