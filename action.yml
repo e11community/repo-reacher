@@ -19,16 +19,16 @@ inputs:
   app_id_env:
     description: >-
       Name of the environment variable holding the GitHub App ID. The App ID is
-      not a secret; map it in your workflow, e.g.
-      `REPO_REACHER_APP_ID: ${{ vars.REPO_REACHER_APP_ID }}`. Override only if the
-      conventional name collides.
+      not a secret; map it in your workflow from a repository variable, e.g. set
+      env `REPO_REACHER_APP_ID` to the `REPO_REACHER_APP_ID` repo variable.
+      Override only if the conventional name collides.
     required: false
     default: 'REPO_REACHER_APP_ID'
   private_key_env:
     description: >-
       Name of the environment variable holding the GitHub App private key (PEM,
-      raw or base64). Map it from a secret in your workflow, e.g.
-      `REPO_REACHER_KEY: ${{ secrets.REPO_REACHER_KEY }}`. Override only if the
+      raw or base64). Map it from a secret in your workflow, e.g. set env
+      `REPO_REACHER_KEY` to the `REPO_REACHER_KEY` secret. Override only if the
       conventional name collides.
     required: false
     default: 'REPO_REACHER_KEY'
