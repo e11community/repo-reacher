@@ -9,6 +9,27 @@ permissions:
   contents: read
 
 jobs:
+  # Validate that every commit in the PR follows Conventional Commits. The release
+  # workflow derives the version bump from these messages, so malformed commits would
+  # corrupt versioning. Runs on PRs only (commits on main are already merged).
+  commitlint:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # need the full PR commit range to lint it
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint PR commits
+        run: npx --no -- commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}" --verbose
+
   check:
     runs-on: ubuntu-latest
     steps:
