@@ -149,9 +149,10 @@ Notes:
 
 ## Outputs
 
-| Output  | Description                                                              |
-| ------- | ------------------------------------------------------------------------ |
-| `token` | The minted installation token (masked, short-lived ~1h). See note below. |
+| Output        | Description                                                                             |
+| ------------- | --------------------------------------------------------------------------------------- |
+| `token`       | The minted installation token (masked, short-lived ~1h). First owner's. See note.       |
+| `tokens_json` | JSON `owner → token` map (each masked) — pick a specific owner's token with `fromJSON`. |
 
 You usually **don't need this** — the action rewrites git config so plain clones
 authenticate transparently. It's exposed for **chaining the credential into steps the
@@ -187,10 +188,28 @@ git rewrite doesn't reach**:
       token: ${{ steps.reach.outputs.token }}
   ```
 
-> **Single vs. multiple owners:** with one owner (the typical case), `token` is that
-> owner's installation token. With several owners, every owner is still applied to git,
-> but `token` is the **first** owner's token — list the one you want to chain first, or
-> run the action once per owner if you need each.
+### Multiple owners
+
+Every owner in `friends` is applied to git regardless. The token outputs differ:
+
+- `token` is the **first** owner's token — handy for the common single-owner case.
+- `tokens_json` is the full `owner → token` map; index it to grab an exact one:
+
+  ```yaml
+  - uses: e11community/repo-reacher@v1
+    id: reach
+    with:
+      friends: |
+        org2
+        org3/yo
+  - uses: actions/checkout@v6
+    with:
+      repository: org3/yo
+      token: ${{ fromJSON(steps.reach.outputs.tokens_json)['org3'] }}
+  ```
+
+  Keys are the owner names exactly as resolved from `friends` (e.g. `org3`, not `org3/yo`).
+  Each token in the map is masked in logs.
 
 ## Limiting token permissions
 
