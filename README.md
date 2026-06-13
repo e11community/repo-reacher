@@ -147,6 +147,70 @@ Notes:
 | `private_key_env` | no       | `REPO_REACHER_KEY`    | Name of the env var holding the App private key (PEM, raw or base64).                |
 | `permissions`     | no       | `contents:read`       | Narrow the minted token to a subset of the App's grant (see below). `inherit` = all. |
 
+## Outputs
+
+| Output        | Description                                                                             |
+| ------------- | --------------------------------------------------------------------------------------- |
+| `token`       | The minted installation token (masked, short-lived ~1h). First owner's. See note.       |
+| `tokens_json` | JSON `owner → token` map (each masked) — pick a specific owner's token with `fromJSON`. |
+
+You usually **don't need this** — the action rewrites git config so plain clones
+authenticate transparently. It's exposed for **chaining the credential into steps the
+git rewrite doesn't reach**:
+
+- **Non-git steps** — authenticate the `gh` CLI or a GitHub API call:
+
+  ```yaml
+  - uses: e11community/repo-reacher@v1
+    id: reach
+    with:
+      friends: |
+        org2
+  - run: gh release view --repo org2/private-repo
+    env:
+      GH_TOKEN: ${{ steps.reach.outputs.token }}
+  ```
+
+- **`actions/checkout`** — yes, even though checkout _is_ git. The global
+  `insteadOf` rewrite covers ad-hoc clones in `run:` steps, but `actions/checkout`
+  manages its **own** credentials for the repo it clones rather than honoring that
+  config — so to check out another owner's private repo, pass the token explicitly:
+
+  ```yaml
+  - uses: e11community/repo-reacher@v1
+    id: reach
+    with:
+      friends: |
+        org2
+  - uses: actions/checkout@v6
+    with:
+      repository: org2/private-repo
+      token: ${{ steps.reach.outputs.token }}
+  ```
+
+### Multiple owners
+
+Every owner in `friends` is applied to git regardless. The token outputs differ:
+
+- `token` is the **first** owner's token — handy for the common single-owner case.
+- `tokens_json` is the full `owner → token` map; index it to grab an exact one:
+
+  ```yaml
+  - uses: e11community/repo-reacher@v1
+    id: reach
+    with:
+      friends: |
+        org2
+        org3/yo
+  - uses: actions/checkout@v6
+    with:
+      repository: org3/yo
+      token: ${{ fromJSON(steps.reach.outputs.tokens_json)['org3'] }}
+  ```
+
+  Keys are the owner names exactly as resolved from `friends` (e.g. `org3`, not `org3/yo`).
+  Each token in the map is masked in logs.
+
 ## Limiting token permissions
 
 The minted token defaults to **`contents:read`** — the least privilege needed
