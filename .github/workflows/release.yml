@@ -1,27 +1,87 @@
 name: release
 
-# On every semver tag push (vMAJOR.MINOR.PATCH), move the major tag (vMAJOR) to
-# the same commit so consumers pinned to `@v1` get the latest v1.x without the
-# author force-pushing by hand. The major tag (e.g. `v1`) does not match
-# `v*.*.*`, so updating it does not retrigger this workflow.
+# Auto-release on merge to main. Conventional commits since the last vMAJOR.MINOR.PATCH
+# tag decide the bump level; this workflow then bumps package.json, regenerates
+# CHANGELOG.md, commits both as a single `chore(release)` commit, tags the new version,
+# force-moves the major tag (vMAJOR) so `@v1` consumers track the latest, and publishes a
+# GitHub Release.
+#
+# Loop guard: the release commit message is a non-releasable `chore(release): …` AND carries
+# `[skip ci]`, so the push it creates cannot trigger another release run.
+#
+# Token: the built-in GITHUB_TOKEN with `contents: write` is enough to push the commit + tags
+# because `main` is unprotected (or only blocks deletion/force-push — neither of which this
+# workflow does to a branch). If you later require PRs / status checks / signed commits on
+# main, add the github-actions bot to the bypass list or use a GitHub App token. See docs/ADMIN.md.
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  major-tag:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # full history + tags so bump/changelog can see prior releases
 
-      - name: Move major tag to ${{ github.ref_name }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Decide whether to release, and at what level
+        id: decide
         run: |
           set -euo pipefail
-          MAJOR="${GITHUB_REF_NAME%%.*}"   # v1.2.3 -> v1
-          echo "Moving ${MAJOR} -> ${GITHUB_REF_NAME} ($(git rev-parse --short HEAD))"
-          git tag -f "$MAJOR"
+          LAST=$(git tag --list 'v*.*.*' --sort=-v:refname | head -1)
+          LAST=${LAST:-v0.0.0}
+          # Release only if there is a feat/fix/perf or a breaking change since the last tag.
+          # Everything else (docs/chore/ci/refactor/test/style) is not releasable on its own.
+          if git log "${LAST}..HEAD" --format='%s%n%b' \
+              | grep -qiE '^(feat|fix|perf)(\([^)]+\))?!?:|^[a-z]+(\([^)]+\))?!:|^BREAKING[ -]CHANGE:'; then
+            LEVEL=$(npx --no -- conventional-recommended-bump -p conventionalcommits)
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "level=$LEVEL" >> "$GITHUB_OUTPUT"
+            echo "Releasable commits since ${LAST} → bump: ${LEVEL}"
+          else
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "No releasable commits since ${LAST}; skipping release."
+          fi
+
+      - name: Create release
+        if: steps.decide.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          VERSION=$(npm version "${{ steps.decide.outputs.level }}" --no-git-tag-version) # -> vX.Y.Z
+          MAJOR="${VERSION%%.*}"                                                          # -> vX
+
+          # Capture this release's notes, then prepend the same section to the committed CHANGELOG.
+          npx --no -- conventional-changelog -p conventionalcommits --stdout > "${RUNNER_TEMP}/notes.md"
+          npx --no -- conventional-changelog -p conventionalcommits -i CHANGELOG.md
+
+          git add package.json package-lock.json CHANGELOG.md
+          git commit -m "chore(release): ${VERSION} [skip ci]"
+
+          git tag -a "$VERSION" -m "$VERSION"   # immutable point release (annotated)
+          git tag -f "$MAJOR"                   # moving major pointer (lightweight)
+
+          git push origin "HEAD:${GITHUB_REF_NAME}" --follow-tags
           git push -f origin "$MAJOR"
+
+          gh release create "$VERSION" --title "$VERSION" --notes-file "${RUNNER_TEMP}/notes.md"
