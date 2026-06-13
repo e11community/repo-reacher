@@ -17,8 +17,13 @@ ORG=e11community
 REPO=repo-reacher
 DESC="Authorize git to clone private repositories across one or more orgs using a GitHub App."
 
-gh repo create "$ORG/$REPO" --private --description "$DESC"
+# Public: an action consumed as `owner/action@v1` shouldn't require auth just to be reused.
+gh repo create "$ORG/$REPO" --public --description "$DESC"
 ```
+
+Create the action repo **public** — actions are referenced by ref (`owner/action@v1`)
+and consumers shouldn't have to authenticate just to reuse one. (The repos it _reaches_
+stay private; that's what the GitHub App token is for.)
 
 (Already done for this repo — kept here so re-creating an equivalent action is one command.)
 
