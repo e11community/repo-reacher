@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/e11community/repo-reacher/compare/v1.1.1...v1.2.0) (2026-06-13)
+
+### Features
+
+* conventional-commit-driven auto-release ([#2](https://github.com/e11community/repo-reacher/issues/2)) ([991b614](https://github.com/e11community/repo-reacher/commit/991b6143d9415a61198a07eb4f7f6fe4f01cdff7))
+* expose minted token as token and tokens_json outputs ([#4](https://github.com/e11community/repo-reacher/issues/4)) ([c4f35ea](https://github.com/e11community/repo-reacher/commit/c4f35ea924eccfb7ca7a17bcf2fb491a45848d77)), closes [#3](https://github.com/e11community/repo-reacher/issues/3)
 
 ## [1.1.0](https://github.com/e11community/repo-reacher/compare/v1.0.2...v1.1.0) (2026-06-12)
 

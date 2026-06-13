@@ -1,6 +1,6 @@
 {
   "name": "repo-reacher",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Authorize git to clone private repositories across one or more orgs using a GitHub App, then rewrite git config so later steps (terraform init, etc.) authenticate transparently.",
   "private": true,
   "license": "MIT",
