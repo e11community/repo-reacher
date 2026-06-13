@@ -42,6 +42,22 @@ inputs:
       write. Set to `inherit` to use the App installation's full grant instead.
     required: false
     default: 'contents:read'
+outputs:
+  token:
+    description: >-
+      The minted GitHub App installation access token (masked in logs,
+      short-lived ~1h). Git is already configured to use it transparently, so
+      this is only needed to chain auth into steps the git rewrite doesn't cover
+      — non-git steps (the `gh` CLI, GitHub API calls) and `actions/checkout`,
+      which manages its own credentials. When authorizing a single owner (the
+      typical case) this is that owner's token; with multiple owners it is the
+      FIRST owner's token — see `tokens_json` to pick a specific one.
+  tokens_json:
+    description: >-
+      JSON object mapping each authorized owner to its minted token (each masked
+      in logs). Use this when authorizing multiple owners and you need a specific
+      one in a later step:
+      `${{ fromJSON(steps.<id>.outputs.tokens_json)['<owner>'] }}`.
 runs:
   using: node24
   main: dist/action.js
