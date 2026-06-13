@@ -147,6 +147,51 @@ Notes:
 | `private_key_env` | no       | `REPO_REACHER_KEY`    | Name of the env var holding the App private key (PEM, raw or base64).                |
 | `permissions`     | no       | `contents:read`       | Narrow the minted token to a subset of the App's grant (see below). `inherit` = all. |
 
+## Outputs
+
+| Output  | Description                                                              |
+| ------- | ------------------------------------------------------------------------ |
+| `token` | The minted installation token (masked, short-lived ~1h). See note below. |
+
+You usually **don't need this** — the action rewrites git config so plain clones
+authenticate transparently. It's exposed for **chaining the credential into steps the
+git rewrite doesn't reach**:
+
+- **Non-git steps** — authenticate the `gh` CLI or a GitHub API call:
+
+  ```yaml
+  - uses: e11community/repo-reacher@v1
+    id: reach
+    with:
+      friends: |
+        org2
+  - run: gh release view --repo org2/private-repo
+    env:
+      GH_TOKEN: ${{ steps.reach.outputs.token }}
+  ```
+
+- **`actions/checkout`** — yes, even though checkout _is_ git. The global
+  `insteadOf` rewrite covers ad-hoc clones in `run:` steps, but `actions/checkout`
+  manages its **own** credentials for the repo it clones rather than honoring that
+  config — so to check out another owner's private repo, pass the token explicitly:
+
+  ```yaml
+  - uses: e11community/repo-reacher@v1
+    id: reach
+    with:
+      friends: |
+        org2
+  - uses: actions/checkout@v6
+    with:
+      repository: org2/private-repo
+      token: ${{ steps.reach.outputs.token }}
+  ```
+
+> **Single vs. multiple owners:** with one owner (the typical case), `token` is that
+> owner's installation token. With several owners, every owner is still applied to git,
+> but `token` is the **first** owner's token — list the one you want to chain first, or
+> run the action once per owner if you need each.
+
 ## Limiting token permissions
 
 The minted token defaults to **`contents:read`** — the least privilege needed

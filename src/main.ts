@@ -1,4 +1,4 @@
-import {getInput, info, setFailed} from '@actions/core'
+import {getInput, info, setFailed, setOutput} from '@actions/core'
 import {resolveCredentials} from './credentials'
 import {parseFriends} from './friends'
 import {parsePermissions} from './permissions'
@@ -17,6 +17,7 @@ export async function run(): Promise<void> {
 
     info(permissions ? `Minting tokens narrowed to: ${describePermissions(permissions)}` : 'Minting tokens with the full App installation grant')
 
+    let primaryToken: string | undefined
     for (const [owner, scope] of friends) {
       const repositories = scope === 'ALL' ? undefined : scope.repositories
       // Square-bracket the owner so stray characters (e.g. a leading `- ` from
@@ -30,7 +31,13 @@ export async function run(): Promise<void> {
       // github.com/<owner>/ clone in later steps uses it.
       const token = await mintToken({...credentials, owner, repositories, permissions})
       await configureGit(owner, token)
+      primaryToken ??= token // expose the first owner's token as the `token` output
     }
+
+    // Outputs can't be named per-owner, so `token` is the first owner's (and the
+    // only one when a single owner is authorized — the common case). It's already
+    // setSecret in mintToken, so this stays masked.
+    if (primaryToken) setOutput('token', primaryToken)
 
     info(`Configured git for ${friends.size} owner(s).`)
   } catch (err) {
