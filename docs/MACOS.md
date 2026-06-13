@@ -74,7 +74,7 @@ For cloning private module repos, the token only needs **read access to
 repository contents** — nothing more.
 
 - **Fine-grained PAT** (preferred): Resource owner = the org (e.g.
-  `engineering11`); Repository access = the module repos (or *All repositories*);
+  `engineering11`); Repository access = the module repos (or _All repositories_);
   Permissions → Repository → **Contents: Read-only**.
 - **Classic PAT**: the **`repo`** scope (it's coarse — grants full private-repo
   access; prefer fine-grained).
