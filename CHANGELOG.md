@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/e11community/repo-reacher/compare/v1.2.0...v1.2.1) (2026-10-02)
+
+### Bug Fixes
+
+* drop the expression literal from the tokens_json description ([#5](https://github.com/e11community/repo-reacher/issues/5)) ([ba70f13](https://github.com/e11community/repo-reacher/commit/ba70f1335bb9fedf3a809589d2baacc6db57a0e9))
+
 ## [1.2.0](https://github.com/e11community/repo-reacher/compare/v1.1.1...v1.2.0) (2026-06-13)
 
 ### Features
