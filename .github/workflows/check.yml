@@ -42,6 +42,22 @@ jobs:
 
       - run: npm ci
 
+      # action.yml is the first file the runner parses, and GitHub evaluates
+      # expression syntax everywhere in it — including inside `description` text —
+      # rejecting contexts that are invalid for the block the text sits in. A
+      # documentation example embedded in a description therefore makes the action
+      # fail to load for every consumer, before a single step runs. That shipped
+      # twice: fa642cf removed it from the input descriptions, c4f35ea reintroduced
+      # it in an output description. The needle is assembled from fragments so this
+      # file does not contain the sequence it searches for.
+      - name: No expression literals in action.yml
+        run: |
+          needle="$(printf '%s' '$' '{' '{')"
+          if grep -nF "$needle" action.yml; then
+            echo "::error file=action.yml::action.yml must not contain expression syntax, even inside description text — GitHub evaluates it and the action fails to load. Describe it in prose and put the worked example in README.md."
+            exit 1
+          fi
+
       - name: Type-check
         run: npm run typecheck
 
