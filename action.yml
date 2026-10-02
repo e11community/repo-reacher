@@ -56,8 +56,8 @@ outputs:
     description: >-
       JSON object mapping each authorized owner to its minted token (each masked
       in logs). Use this when authorizing multiple owners and you need a specific
-      one in a later step:
-      `${{ fromJSON(steps.<id>.outputs.tokens_json)['<owner>'] }}`.
+      one in a later step: parse this output with `fromJSON` and index it by owner
+      name. The README has a worked example.
 runs:
   using: node24
   main: dist/action.js
